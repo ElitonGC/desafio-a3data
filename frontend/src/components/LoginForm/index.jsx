@@ -1,6 +1,6 @@
 import { Form, Input, Button, message } from 'antd';
 import api from '../../api';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import styled from 'styled-components';
 
 const FormWrapper = styled.div`

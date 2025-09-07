@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # Serviço do Banco de Dados PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: desafio-a3data-postgres
+    restart: always
+    # As variáveis para o postgres podem vir do .env do backend
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - desafio-a3data-net
+
+  # Serviço do Backend em NestJS
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: desafio-a3data-backend
+    restart: always
+    # Definindo variáveis de ambiente do backend
+    environment:
+      FRONTEND_URL: ${FRONTEND_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      DB_HOST: postgres
+      DB_PORT: ${DB_PORT}
+      DB_USERNAME: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_DATABASE: ${POSTGRES_DB}
+    depends_on:
+      - postgres
+    ports:
+      - "${BACKEND_PORT}:3000"
+    volumes:
+      - ./backend:/usr/src/app
+    networks:
+      - desafio-a3data-net
+
+  # Serviço do Frontend em React com Vite
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: desafio-a3data-frontend
+    restart: always
+    # Definindo variáveis de ambiente do frontend
+    environment:
+      VITE_API_URL: ${VITE_API_URL}
+    ports:
+      - "${FRONTEND_PORT}:5173"
+    volumes:
+      - ./frontend:/app/src
+    networks:
+      - desafio-a3data-net
+
+volumes:
+  postgres_data:
+
+networks:
+  desafio-a3data-net:
+    driver: bridge

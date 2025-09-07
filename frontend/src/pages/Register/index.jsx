@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import UserForm from '../../components/UserForm';
 import { Card } from 'antd';
 
