@@ -1,5 +1,5 @@
 import { Form, Input, Button, message } from 'antd';
-import api from '../../api';
+import { useAuth } from '../../contexts/AuthContext';
 import { Link } from 'react-router';
 import styled from 'styled-components';
 
@@ -25,17 +25,14 @@ const RegisterLink = styled.div`
 
 export default function LoginForm({ onLogin, onCancel }) {
    const [form] = Form.useForm();
+   const { login, loading, error } = useAuth();
 
    const onFinish = async (values) => {
-      try {
-         const res = await api.post('/auth/login', {
-            email: values.email,
-            password: values.password,
-         });
-         if (![200, 201].includes(res.status)) throw new Error('Login failed');
-         onLogin(res.data.access_token);
-      } catch {
-         message.error('E-mail ou senha inválidos');
+      const success = await login(values.email, values.password);
+      if (success) {
+         if (onLogin) onLogin();
+      } else {
+         message.error(error || 'E-mail ou senha inválidos');
       }
    };
 
@@ -61,7 +58,7 @@ export default function LoginForm({ onLogin, onCancel }) {
                      Cancelar
                   </Button>
                )}
-               <Button type="primary" htmlType="submit" style={{ minWidth: 100 }}>
+               <Button type="primary" htmlType="submit" style={{ minWidth: 100 }} loading={loading}>
                   Entrar
                </Button>
             </Actions>

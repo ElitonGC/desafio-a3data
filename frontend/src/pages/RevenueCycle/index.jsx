@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { useAuth } from '../../contexts/AuthContext';
 import { useState, useRef } from 'react';
 import RevenueCycleList from '../../components/RevenueCycleList';
 import RevenueCycleForm from '../../components/RevenueCycleForm';
@@ -49,7 +50,8 @@ const LogoutButton = styled.button`
    font-size: 20px;
 `;
 
-export default function RevenueCyclesPage({ token, onLogout }) {
+export default function RevenueCyclesPage() {
+   const { logout } = useAuth();
    const [editingRevenueCycle, setEditingRevenueCycle] = useState(null);
    const [modalVisible, setModalVisible] = useState(false);
    const RevenueCycleListRef = useRef();
@@ -80,12 +82,12 @@ export default function RevenueCyclesPage({ token, onLogout }) {
       <Layout style={{ minHeight: '100vh', background: '#f0f2f5' }}>
          <StyledHeader>
             <h2 style={{ margin: 0 }}>Ciclo de Receiras</h2>
-            <LogoutButton onClick={onLogout} title="Logoff">
+            <LogoutButton onClick={logout} title="Logoff">
                <PoweroffOutlined />
             </LogoutButton>
          </StyledHeader>
          <StyledContent>
-            <RevenueCycleList ref={RevenueCycleListRef} token={token} onEdit={handleEdit} onAdd={handleAdd} />
+            <RevenueCycleList ref={RevenueCycleListRef} onEdit={handleEdit} onAdd={handleAdd} />
             <FormSpacingStyle />
             <FormSpacingStyle />
             <Modal
@@ -106,7 +108,6 @@ export default function RevenueCyclesPage({ token, onLogout }) {
                         refreshRevenueCycles();
                      }}
                      isEdit
-                     token={token}
                      onCancel={handleCloseModal}
                   />
                )}
@@ -116,7 +117,6 @@ export default function RevenueCyclesPage({ token, onLogout }) {
                         handleCloseModal();
                         refreshRevenueCycles();
                      }}
-                     token={token}
                      onCancel={handleCloseModal}
                   />
                )}

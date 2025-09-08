@@ -2,11 +2,10 @@ import { useNavigate } from 'react-router';
 import LoginForm from '../../components/LoginForm';
 import { Card } from 'antd';
 
-export default function LoginPage({ setToken }) {
+export default function LoginPage() {
    const navigate = useNavigate();
 
-   const handleLogin = (token) => {
-      setToken(token);
+   const handleLogin = () => {
       navigate('/revenue-cycle');
    };
 

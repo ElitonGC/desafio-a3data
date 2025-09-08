@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import React, { useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import api from '../../api';
+import { useAuth } from '../../contexts/AuthContext';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
@@ -49,13 +50,16 @@ const Tag = styled(AntTag)`
    border-radius: 8px !important;
 `;
 
-const RevenueCycleList = forwardRef(({ token, onEdit, onAdd }, ref) => {
+const RevenueCycleList = forwardRef(({ onEdit, onAdd }, ref) => {
+   const { user } = useAuth();
    const [revenueCycles, setRevenueCycles] = useState([]);
    const [loading, setLoading] = useState(false);
 
    const fetchRevenueCycles = () => {
       setLoading(true);
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      if (user && user.token) {
+         api.defaults.headers.common['Authorization'] = `Bearer ${user.token}`;
+      }
       api.get('/revenue-cycle')
          .then(res => setRevenueCycles(res.data))
          .finally(() => setLoading(false));
@@ -68,12 +72,7 @@ const RevenueCycleList = forwardRef(({ token, onEdit, onAdd }, ref) => {
    useEffect(() => {
       fetchRevenueCycles();
       // eslint-disable-next-line
-   }, [ref]);
-
-   useEffect(() => {
-      fetchRevenueCycles();
-      // eslint-disable-next-line
-   }, [token]);
+   }, [ref, user]);
 
    const handleDelete = async (id) => {
       setLoading(true);

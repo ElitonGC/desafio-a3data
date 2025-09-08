@@ -1,5 +1,6 @@
 import { Form, Input, Button, message, DatePicker, Select, Row, Col } from 'antd';
 import api from '../../api';
+import { useAuth } from '../../contexts/AuthContext';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import { useEffect } from 'react';
@@ -32,7 +33,8 @@ const FormWrapper = styled.div`
 `;
 
 
-export default function RevenueCycleForm({ onSuccess, initialValues = {}, isEdit = false, token }) {
+export default function RevenueCycleForm({ onSuccess, initialValues = {}, isEdit = false }) {
+   const { user } = useAuth();
    const [form] = Form.useForm();
 
    useEffect(() => {
@@ -51,7 +53,9 @@ export default function RevenueCycleForm({ onSuccess, initialValues = {}, isEdit
          values.dueDate = values.dueDate ? values.dueDate.toISOString() : null;
          values.paidDate = values.paidDate ? values.paidDate.toISOString() : undefined;
          let res;
-         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+         if (user && user.token) {
+            api.defaults.headers.common['Authorization'] = `Bearer ${user.token}`;
+         }
          if (isEdit) {
             res = await api.put(`/revenue-cycle/${initialValues.id}`, values);
             if (![200, 201].includes(res.status)) throw new Error('Erro ao atualizar');

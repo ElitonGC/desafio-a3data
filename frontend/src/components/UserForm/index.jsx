@@ -1,6 +1,7 @@
 import { Form, Input, Button, message } from 'antd';
 import styled from 'styled-components';
 import api from '../../api';
+import { useAuth } from '../../contexts/AuthContext';
 import { useEffect } from 'react';
 
 
@@ -33,21 +34,24 @@ export default function UserForm({ onSuccess, initialValues = {}, isEdit = false
       // eslint-disable-next-line
    }, [initialValues, isEdit]);
 
+   const { signup, loading, error } = useAuth();
    const onFinish = async (values) => {
       try {
-         let res;
          if (isEdit) {
             api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
             if (values.password === "") delete values.password;
-            res = await api.patch(`/users/${initialValues.id}`, values);
+            const res = await api.patch(`/users/${initialValues.id}`, values);
             if (![200, 201].includes(res.status)) throw new Error('Erro ao atualizar');
             message.success('Usuário atualizado!');
             onSuccess && onSuccess();
          } else {
-            res = await api.post('/auth/signup', values);
-            if (![200, 201].includes(res.status)) throw new Error('Erro ao cadastrar');
-            message.success('Usuário cadastrado!');
-            onSuccess && onSuccess(res.data?.access_token);
+            const success = await signup(values);
+            if (success) {
+               message.success('Usuário cadastrado!');
+               onSuccess && onSuccess();
+            } else {
+               message.error(error || 'Erro ao cadastrar usuário');
+            }
          }
       } catch {
          message.error(isEdit ? 'Erro ao atualizar usuário' : 'Erro ao cadastrar usuário');
@@ -94,7 +98,7 @@ export default function UserForm({ onSuccess, initialValues = {}, isEdit = false
                                  Cancelar
                               </Button>
                            )}
-                           <Button type="primary" htmlType="submit" style={{ minWidth: 100 }}>
+                           <Button type="primary" htmlType="submit" style={{ minWidth: 100 }} loading={loading && !isEdit}>
                               {isEdit ? 'Salvar' : 'Cadastrar'}
                            </Button>
                         </Actions>

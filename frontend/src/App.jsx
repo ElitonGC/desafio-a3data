@@ -1,30 +1,55 @@
-import { useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router';
+
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router';
 import LoginPage from './pages/Login';
 import RegisterPage from './pages/Register';
 import RevenueCyclePage from './pages/RevenueCycle';
 
-export default function App() {
-   const [token, setToken] = useState(localStorage.getItem('token') || '');
 
-   const handleSetToken = (t) => {
-      setToken(t);
-      localStorage.setItem('token', t);
-   };
+function ProtectedRoute({ children }) {
+   const { user, loading } = useAuth();
+   const location = useLocation();
+   if (loading) return null; // ou um spinner
+   if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
+   return children;
+}
 
-   const handleLogout = () => {
-      setToken('');
-      localStorage.removeItem('token');
-   };
+function PublicRoute({ children }) {
+   const { user, loading } = useAuth();
+   if (loading) return null; // ou um spinner
+   if (user) return <Navigate to="/revenue-cycle" replace />;
+   return children;
+}
 
+function AppRoutes() {
    return (
       <BrowserRouter>
          <Routes>
-            <Route path="/login" element={<LoginPage setToken={handleSetToken} />} />
-            <Route path="/register" element={<RegisterPage setToken={handleSetToken}/>} />
-            <Route path="/revenue-cycle" element={token ? <RevenueCyclePage token={token} onLogout={handleLogout} /> : <Navigate to="/login" />} />
+            <Route path="/login" element={
+               <PublicRoute>
+                  <LoginPage />
+               </PublicRoute>
+            } />
+            <Route path="/register" element={
+               <PublicRoute>
+                  <RegisterPage />
+               </PublicRoute>
+            } />
+            <Route path="/revenue-cycle" element={
+               <ProtectedRoute>
+                  <RevenueCyclePage />
+               </ProtectedRoute>
+            } />
             <Route path="*" element={<Navigate to="/login" />} />
          </Routes>
       </BrowserRouter>
+   );
+}
+
+export default function App() {
+   return (
+      <AuthProvider>
+         <AppRoutes />
+      </AuthProvider>
    );
 }
